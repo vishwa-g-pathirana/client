@@ -96,7 +96,7 @@ const Table2 = () => {
         getSections();
     }, []);
     console.log(section);
-
+//dummy cards
     const itemsFromBackend =
         [{
             id: uuid(), content:
