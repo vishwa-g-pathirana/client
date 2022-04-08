@@ -8,7 +8,7 @@ const Swinglan = ({ name }) => {
     const [date, setDate] = useState([]);
     const getStrat = async () => {
         try {
-            const response = await fetch("http://localhost:4000/jat/16")
+            const response = await fetch("http://localhost:4000/jat/27")
             const jsonDATA = await response.json();
 
             setStrats(jsonDATA);

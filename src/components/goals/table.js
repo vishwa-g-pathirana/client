@@ -1,8 +1,9 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { v4 as uuid } from 'uuid';
 import Vission from "../vission/vission";
 import Addtask from "./addTask";
+import Deletegoals from "./deletegoals";
 import Swinglan from "./SwingLane";
 import Swinglan2 from "./SwingLane2";
 import Table2 from "./table2";
@@ -50,13 +51,16 @@ const onDragEnd = (result, columns, setColumns) => {
 
 
 const Table = () => {
-    const [section, setSections] = useState([]);
+    const [positions, setPositions] = useState({});
+    const [hasLoaded, setHasLoaded] = useState(false);
+    const nodeRef = useRef(null);
+    const [sections, setSections] = useState([]);
     const [description, setDescription] = useState([]);
     const [date, setDate] = useState([]);
 
     const getSections = async () => {
         try {
-            const response = await fetch("http://localhost:4000/can1/1")
+            const response = await fetch("http://localhost:4000/can1")
             const jsonDATA = await response.json();
 
             setSections(jsonDATA);
@@ -68,29 +72,37 @@ const Table = () => {
     useEffect(() => {
         getSections();
     }, []);
-    console.log(section);
+    console.log(sections);
+    useEffect(() => {
+        const existingDivPositions = JSON.parse(
+          localStorage.getItem("positions_div")
+        );
+        setPositions(existingDivPositions);
+        setHasLoaded(true);
+        console.log(existingDivPositions);
+        console.log("has loaded");
+      }, []);
+    
+      function handleStop(e, data) {
+        let dummyPositions = { ...positions };
+        const itemId = e.target.id;
+        dummyPositions[itemId] = {};
+        dummyPositions[itemId]["x"] = data.x;
+        dummyPositions[itemId]["y"] = data.y;
+        setPositions(dummyPositions);
+      }
+    
+      useEffect(() => {
+        localStorage.setItem(`positions_div`, JSON.stringify(positions));
+      }, [positions]);
+    
 
-    const itemsFromBackend =
-        [{
-            id: uuid(), content:
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <p> Task 1 </p>
-                    <button className="btn btn-warning">Delete
-                    </button>
-                </div>
-        },
-        {
-            id: uuid(), content:
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <p> Task 2 </p>
-                    <button className="btn btn-warning">Delete
-                    </button>
-                </div>
-        }
+    const itemsFromBackend =(
+        <div id={sections.section_id}>
 
-
-        ];
-
+        </div>
+    )
+console.log(uuid)
 
 
     //4 quarters
@@ -99,12 +111,12 @@ const Table = () => {
     {
         [uuid()]: {
             name: '1st Q :',
-            items: itemsFromBackend
+            items: []
 
         },
         [uuid()]: {
             name: '2nd Q :',
-            items: []
+            items: itemsFromBackend
 
         },
         [uuid()]: {
@@ -151,7 +163,21 @@ const Table = () => {
 
                                             {column.items.map((item, index) => {
                                                 return (
-                                                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                                                    <Draggable  draggableId={item.id} index={index}
+                                                    defaultPosition={
+                                                        positions===null
+                                                        ?{x: 0, y: 0}
+                                                        : !positions[item[3]]
+                                                        ? { x: 0, y: 0 }
+                                                        : { x: positions[item[3]].x, y: positions[item[3]].y }
+
+                                                    }
+                                                    position={null}
+                                                    key={item[3]}
+                                                    nodeRef={nodeRef}
+                                                    onStop={handleStop}
+                                                    
+                                                    >
                                                         {(provided, snapshot) => {
                                                             return (
                                                                 <div
